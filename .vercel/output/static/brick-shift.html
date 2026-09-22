@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Brick Shift</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #110816; color: #f5edff; font-family: system-ui, sans-serif; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; top: 16px; left: 16px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="hud">Score 0</div>
+  <script>
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d");
+    const hud = document.getElementById("hud");
+    let w, h, dpr;
+    function resize() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize(); addEventListener("resize", resize);
+
+    const paddle = { x: 0, w: 110, h: 14 };
+    const ball = { x: 0, y: 0, vx: 4.2, vy: -4.8, r: 8 };
+    let bricks = [], score = 0, live = true;
+
+    function layout() {
+      bricks = [];
+      const cols = 8, rows = 5, gap = 8;
+      const bw = Math.min(70, (w - 48) / cols - gap);
+      const left = (w - cols * (bw + gap) + gap) / 2;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          bricks.push({ x: left + c * (bw + gap), y: 70 + r * 28, w: bw, h: 20, hit: false, row: r });
+        }
+      }
+      paddle.x = w / 2 - paddle.w / 2;
+      ball.x = w / 2; ball.y = h - 80; ball.vx = 4.2; ball.vy = -4.8;
+      live = true;
+    }
+    layout();
+    addEventListener("resize", layout);
+    addEventListener("pointermove", (e) => { paddle.x = e.clientX - paddle.w / 2; });
+    addEventListener("pointerdown", () => { if (!live) { score = 0; layout(); } });
+
+    function loop() {
+      if (live) {
+        ball.x += ball.vx; ball.y += ball.vy;
+        if (ball.x < 8 || ball.x > w - 8) ball.vx *= -1;
+        if (ball.y < 8) ball.vy *= -1;
+        const py = h - 40;
+        paddle.x = Math.max(8, Math.min(w - paddle.w - 8, paddle.x));
+        if (ball.y + ball.r > py && ball.y < py + paddle.h && ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
+          ball.vy = -Math.abs(ball.vy);
+          ball.vx += (ball.x - (paddle.x + paddle.w / 2)) * 0.08;
+        }
+        for (const b of bricks) {
+          if (b.hit) continue;
+          if (ball.x > b.x && ball.x < b.x + b.w && ball.y > b.y && ball.y < b.y + b.h) {
+            b.hit = true; ball.vy *= -1; score += 10;
+          }
+        }
+        if (ball.y > h) live = false;
+        if (bricks.every((b) => b.hit)) layout();
+      }
+      ctx.fillStyle = "#110816"; ctx.fillRect(0, 0, w, h);
+      const colors = ["#e2b0ff", "#c084fc", "#b56bff", "#9333ea", "#6d28d9"];
+      for (const b of bricks) {
+        if (b.hit) continue;
+        ctx.fillStyle = colors[b.row % colors.length];
+        ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h, 5); ctx.fill();
+      }
+      ctx.fillStyle = "#f5edff";
+      ctx.beginPath(); ctx.roundRect(paddle.x, h - 40, paddle.w, paddle.h, 8); ctx.fill();
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+      hud.textContent = live ? "Score " + score : "Missed · " + score + " · tap to retry";
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>

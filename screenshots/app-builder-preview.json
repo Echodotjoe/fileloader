@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Violet Arcade",
+      "hasCanvas": false,
+      "bodyTextLen": 183,
+      "bodyTextHash": "0c652cf02958794e459ce5c515acbf262c24b6200cd417cbf205315ca763faae",
+      "bodyTextPrefix": "GAME LIBRARY Violet Arcade HTML and SWF files next to this page ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Violet Arcade",
+      "hasCanvas": false,
+      "bodyTextLen": 183,
+      "bodyTextHash": "0c652cf02958794e459ce5c515acbf262c24b6200cd417cbf205315ca763faae",
+      "bodyTextPrefix": "GAME LIBRARY Violet Arcade HTML and SWF files next to this page ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

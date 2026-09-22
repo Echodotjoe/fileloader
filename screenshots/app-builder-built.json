@@ -1,0 +1,41 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Violet Arcade",
+      "hasCanvas": false,
+      "bodyTextLen": 250,
+      "bodyTextHash": "e3e6f3dc0cdbbbbaf73896938b2e5b2d8af310ab8c5d253ddbcc7ab69f2339b5",
+      "bodyTextPrefix": "GAME LIBRARY Violet Arcade HTML and SWF files next to this page ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Violet Arcade",
+      "hasCanvas": false,
+      "bodyTextLen": 250,
+      "bodyTextHash": "e3e6f3dc0cdbbbbaf73896938b2e5b2d8af310ab8c5d253ddbcc7ab69f2339b5",
+      "bodyTextPrefix": "GAME LIBRARY Violet Arcade HTML and SWF files next to this page ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": true,
+  "baselineReasons": [
+    "desktop: body text changed (183 -> 250 chars, hash mismatch)",
+    "mobile: body text changed (183 -> 250 chars, hash mismatch)"
+  ]
+}

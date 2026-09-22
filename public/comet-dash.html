@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Comet Dash</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #110816; color: #f5edff; font-family: system-ui, sans-serif; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; inset: 16px auto auto 16px; font-size: 14px; letter-spacing: 0.04em; }
+    #hint { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); opacity: 0.7; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="hud">Score 0</div>
+  <div id="hint">Tap or press Space to hop</div>
+  <script>
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d");
+    const hud = document.getElementById("hud");
+    let w, h, dpr;
+    function resize() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    addEventListener("resize", resize);
+
+    const player = { x: 90, y: 0, vy: 0, on: true };
+    const rocks = [];
+    let t = 0, score = 0, dead = false, spawn = 0;
+
+    function hop() {
+      if (dead) { rocks.length = 0; score = 0; dead = false; player.vy = 0; player.on = true; t = 0; spawn = 0; return; }
+      if (player.on) { player.vy = -13; player.on = false; }
+    }
+    addEventListener("pointerdown", hop);
+    addEventListener("keydown", (e) => { if (e.code === "Space" || e.code === "ArrowUp") { e.preventDefault(); hop(); } });
+
+    function loop() {
+      t += 1;
+      const ground = h * 0.72;
+      const speed = 5 + Math.min(8, score / 40);
+      if (!dead) {
+        player.vy += 0.55;
+        player.y += player.vy;
+        if (player.y > 0) { player.y = 0; player.vy = 0; player.on = true; }
+        spawn -= 1;
+        if (spawn <= 0) {
+          rocks.push({ x: w + 40, w: 28 + Math.random() * 24, h: 28 + Math.random() * 50 });
+          spawn = 70 + Math.random() * 50 - Math.min(30, score);
+        }
+        for (const r of rocks) r.x -= speed;
+        while (rocks.length && rocks[0].x + rocks[0].w < -20) { rocks.shift(); score += 1; }
+        const px = player.x, py = ground - 36 + player.y, pw = 36, ph = 36;
+        for (const r of rocks) {
+          const rx = r.x, ry = ground - r.h;
+          if (px < rx + r.w && px + pw > rx && py < ry + r.h && py + ph > ry) dead = true;
+        }
+      }
+      ctx.fillStyle = "#110816";
+      ctx.fillRect(0, 0, w, h);
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, "#2a1450");
+      g.addColorStop(1, "#110816");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#1a0e28";
+      ctx.fillRect(0, ground, w, h - ground);
+      ctx.fillStyle = "#b56bff";
+      ctx.beginPath();
+      ctx.roundRect(player.x, ground - 36 + player.y, 36, 36, 10);
+      ctx.fill();
+      ctx.fillStyle = "#7c3aed";
+      for (const r of rocks) {
+        ctx.beginPath();
+        ctx.roundRect(r.x, ground - r.h, r.w, r.h, 6);
+        ctx.fill();
+      }
+      hud.textContent = dead ? "Crashed · " + score + " · tap to retry" : "Score " + score;
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
