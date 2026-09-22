@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <title>Error</title>
+    <style>
+      :root {
+        --page: #000000;
+        --panel: #111111;
+        --panel-edge: #1c1c1c;
+        --line: #f4f4f4;
+        --text: #ffffff;
+        --muted: #bcbcbc;
+        --accent: #69c7ff;
+        --button-radius: 12px;
+        --panel-radius: 18px;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: var(--page);
+        color: var(--text);
+        font-family: "Minecraft Ten", "Noto Sans", "Segoe UI", Arial, sans-serif;
+      }
+
+      .screen {
+        min-height: 100vh;
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(300px, 1fr) minmax(430px, 44vw);
+      }
+
+      .page-title {
+        position: absolute;
+        z-index: 1;
+        top: clamp(26px, 5vw, 62px);
+        left: clamp(28px, 7vw, 112px);
+        margin: 0;
+        color: var(--text);
+        line-height: 1;
+      }
+
+      .page-title .pixel-label { height: clamp(24px, 2.7vw, 38px); }
+
+      .launcher-area {
+        display: flex;
+        align-items: center;
+        padding: clamp(32px, 7vw, 112px);
+      }
+
+      .actions {
+        width: min(100%, 330px);
+        display: grid;
+        gap: 15px;
+      }
+
+      .ore-button {
+        min-height: 64px;
+        border: 3px solid #0a0a0a;
+        border-radius: var(--button-radius);
+        background: linear-gradient(180deg, #353535 0%, #303030 48%, #2b2b2b 100%);
+        box-shadow:
+          0 0 0 2px #555555,
+          inset 0 3px 0 rgba(255,255,255,.08),
+          inset 0 -4px 0 rgba(0,0,0,.34),
+          inset 3px 0 0 rgba(255,255,255,.04),
+          inset -3px 0 0 rgba(0,0,0,.20),
+          0 4px 0 #050505;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .ore-button:hover {
+        border-color: #111111;
+        background: linear-gradient(180deg, #464646 0%, #404040 48%, #393939 100%);
+      }
+
+      .ore-button:active {
+        transform: translateY(2px);
+        background: #292929;
+      }
+
+      .keybind-panel {
+        display: flex;
+        align-items: center;
+        margin: clamp(28px, 7vh, 80px) clamp(28px, 5vw, 88px) clamp(28px, 7vh, 80px) 0;
+        padding: clamp(28px, 5vw, 80px) clamp(28px, 5.5vw, 96px);
+        background: var(--panel);
+        border: 1px solid var(--panel-edge);
+        border-radius: var(--panel-radius);
+      }
+
+      .keybinds {
+        width: 100%;
+        border: 1px solid #303030;
+        border-radius: 12px;
+        background: #0c0c0c;
+        overflow: hidden;
+      }
+
+      .keybind-row {
+        min-height: 86px;
+        display: grid;
+        grid-template-columns: minmax(145px, 1fr) minmax(180px, 1.15fr);
+        border-bottom: 1px solid #303030;
+      }
+
+      .keybind-row:last-child { border-bottom: 0; }
+
+      .bind-name, .bind-key {
+        display: flex;
+        align-items: center;
+        padding: 18px 22px;
+      }
+
+      .bind-name {
+        color: var(--muted);
+        border-right: 1px solid #303030;
+      }
+
+      .bind-key { color: var(--text); }
+
+      .pixel-label {
+        display: inline-block;
+        height: 1em;
+        line-height: 1;
+        vertical-align: middle;
+        aspect-ratio: var(--pixel-aspect, 1 / 1);
+      }
+
+      .pixel-label svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+
+      .ore-button .pixel-label { height: 28px; }
+      .bind-name .pixel-label { height: 11px; }
+      .bind-key .pixel-label { height: 12px; }
+      .bind-key .pixel-label.compact { height: 10px; }
+
+      .ore-button .pixel-label svg {
+        filter: drop-shadow(2px 2px 0 rgba(0,0,0,.52));
+      }
+
+      .game-overlay {
+        position: fixed;
+        z-index: 10;
+        inset: 0;
+        background: #000;
+      }
+
+      .game-overlay[hidden] { display: none; }
+
+      .game-frame {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #000;
+      }
+
+      .ruffle-container,
+      .ruffle-container ruffle-player {
+        width: 100%;
+        height: 100%;
+      }
+
+      .ruffle-container ruffle-player { display: block; }
+
+      @media (max-width: 760px) {
+        body { overflow: auto; }
+        .screen { grid-template-columns: 1fr; }
+        .launcher-area { min-height: 48vh; justify-content: center; }
+        .keybind-panel { min-height: 52vh; margin: 0 20px 28px; }
+        .page-title { top: 28px; left: 28px; }
+        .page-title .pixel-label { height: 24px; }
+      }
+
+      @media (max-width: 430px) {
+        .launcher-area, .keybind-panel { padding: 28px 20px; }
+        .keybind-row { grid-template-columns: 1fr; }
+        .bind-name { padding-bottom: 6px; border-right: 0; }
+        .bind-key { padding-top: 6px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="screen">
+      <h1 class="page-title">
+        <span class="pixel-label" data-pixel-text="Special Game Loader"></span>
+      </h1>
+
+      <section class="launcher-area" aria-label="Game launch options">
+        <div class="actions">
+          <button class="ore-button" id="playHtmlButton" type="button">
+            <span class="pixel-label" data-pixel-text="Play HTML"></span>
+          </button>
+          <button class="ore-button" id="playSwfButton" type="button">
+            <span class="pixel-label" data-pixel-text="Play SWF"></span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="keybind-panel" aria-label="Keybinds">
+        <div class="keybinds">
+          <div class="keybind-row">
+            <div class="bind-name">
+              <span class="pixel-label" data-pixel-text="Force Close"></span>
+            </div>
+            <div class="bind-key">
+              <span class="pixel-label" data-pixel-text="H"></span>
+            </div>
+          </div>
+
+          <div class="keybind-row">
+            <div class="bind-name">
+              <span class="pixel-label" data-pixel-text="Fullscreen"></span>
+            </div>
+            <div class="bind-key">
+              <span class="pixel-label" data-pixel-text="Shift + Alt + F"></span>
+            </div>
+          </div>
+
+          <div class="keybind-row">
+            <div class="bind-name">
+              <span class="pixel-label" data-pixel-text="Back To Main Page"></span>
+            </div>
+            <div class="bind-key">
+              <span class="pixel-label compact" data-pixel-text="Shift + Alt + Backspace"></span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <input id="htmlFilePicker" type="file" accept=".html,.htm,text/html" hidden />
+    <input id="swfFilePicker" type="file" accept=".swf,application/x-shockwave-flash" hidden />
+
+    <section class="game-overlay" id="gameOverlay" hidden>
+      <iframe
+        class="game-frame"
+        id="gameFrame"
+        title="Loaded HTML game"
+        sandbox="allow-scripts allow-forms allow-modals allow-popups"
+      ></iframe>
+    </section>
+
+    <section class="game-overlay" id="swfOverlay" hidden>
+      <div class="ruffle-container" id="ruffleContainer"></div>
+    </section>
+
+    <script>
+      const glyphs = {
+        A: [".###.", "##.##", "##.##", "#####", "##.##", "##.##", "##.##"],
+        B: ["####.", "##.##", "####.", "##.##", "##.##", "##.##", "####."],
+        C: [".####", "##...", "##...", "##...", "##...", "##...", ".####"],
+        D: ["####.", "##.##", "##.##", "##.##", "##.##", "##.##", "####."],
+        E: ["#####", "##...", "####.", "##...", "##...", "##...", "#####"],
+        F: ["#####", "##...", "####.", "##...", "##...", "##...", "##..."],
+        G: [".####", "##...", "##...", "##.##", "##.##", "##.##", ".####"],
+        H: ["##.##", "##.##", "##.##", "#####", "##.##", "##.##", "##.##"],
+        I: ["#####", "..##.", "..##.", "..##.", "..##.", "..##.", "#####"],
+        K: ["##.##", "##.##", "####.", "###..", "####.", "##.##", "##.##"],
+        L: ["##...", "##...", "##...", "##...", "##...", "##...", "#####"],
+        M: ["##.##", "#####", "#####", "##.##", "##.##", "##.##", "##.##"],
+        N: ["##.##", "#####", "#####", "######", "##.##", "##.##", "##.##"],
+        O: [".###.", "##.##", "##.##", "##.##", "##.##", "##.##", ".###."],
+        P: ["####.", "##.##", "##.##", "####.", "##...", "##...", "##..."],
+        R: ["####.", "##.##", "##.##", "####.", "####.", "##.##", "##.##"],
+        S: [".####", "##...", "###..", ".###.", "...##", "...##", "####."],
+        T: ["#####", "..##.", "..##.", "..##.", "..##.", "..##.", "..##."],
+        U: ["##.##", "##.##", "##.##", "##.##", "##.##", "##.##", ".###."],
+        W: ["##.##", "##.##", "##.##", "##.##", "#####", "#####", "##.##"],
+        Y: ["##.##", "##.##", ".###.", "..##.", "..##.", "..##.", "..##."],
+        "+": [".....", "..##.", "..##.", "#####", "..##.", "..##.", "....."],
+        "-": [".....", ".....", ".....", "#####", ".....", ".....", "....."],
+        " ": ["...", "...", "...", "...", "...", "...", "..."]
+      };
+
+      document.querySelectorAll("[data-pixel-text]").forEach((label) => {
+        const text = label.dataset.pixelText.toUpperCase();
+        const letters = [...text].map((character) => glyphs[character] || glyphs[" "]);
+        const width = letters.reduce(
+          (total, glyph, index) => total + glyph[0].length + (index < letters.length - 1 ? 1 : 0),
+          0
+        );
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", `0 0 ${width} 7`);
+        svg.setAttribute("width", width);
+        svg.setAttribute("height", "7");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.setAttribute("shape-rendering", "crispEdges");
+        svg.setAttribute("aria-hidden", "true");
+
+        let offset = 0;
+
+        letters.forEach((glyph) => {
+          glyph.forEach((row, y) => {
+            [...row].forEach((pixel, x) => {
+              if (pixel === "#") {
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("x", offset + x);
+                rect.setAttribute("y", y);
+                rect.setAttribute("width", "1");
+                rect.setAttribute("height", "1");
+                rect.setAttribute("fill", "currentColor");
+                svg.appendChild(rect);
+              }
+            });
+          });
+          offset += glyph[0].length + 1;
+        });
+
+        label.replaceChildren(svg);
+        label.style.setProperty("--pixel-aspect", `${width} / 7`);
+        label.style.width = `${(label.getBoundingClientRect().height * width) / 7}px`;
+      });
+
+      const playHtmlButton = document.querySelector("#playHtmlButton");
+      const htmlFilePicker = document.querySelector("#htmlFilePicker");
+      const gameOverlay = document.querySelector("#gameOverlay");
+      let gameFrame = document.querySelector("#gameFrame");
+
+      const playSwfButton = document.querySelector("#playSwfButton");
+      const swfFilePicker = document.querySelector("#swfFilePicker");
+      const swfOverlay = document.querySelector("#swfOverlay");
+      const ruffleContainer = document.querySelector("#ruffleContainer");
+
+      let ruffleLoading;
+      let activeRufflePlayer;
+
+      function resetHtmlFrame() {
+        const freshFrame = gameFrame.cloneNode(false);
+        freshFrame.src = "about:blank";
+        gameFrame.replaceWith(freshFrame);
+        gameFrame = freshFrame;
+      }
+
+      function returnToMainPage() {
+        resetHtmlFrame();
+        gameOverlay.hidden = true;
+
+        activeRufflePlayer?.pause();
+        activeRufflePlayer?.remove();
+        activeRufflePlayer = undefined;
+
+        ruffleContainer.replaceChildren();
+        swfOverlay.hidden = true;
+      }
+
+      function runKeybind(keybind) {
+        const isForceClose =
+          keybind.code === "KeyH" &&
+          !keybind.shiftKey &&
+          !keybind.altKey &&
+          !keybind.ctrlKey &&
+          !keybind.metaKey;
+
+        const isFullscreen =
+          keybind.code === "KeyF" &&
+          keybind.shiftKey &&
+          keybind.altKey;
+
+        const isBackToMain =
+          keybind.code === "Backspace" &&
+          keybind.shiftKey &&
+          keybind.altKey;
+
+        if (isForceClose) {
+          returnToMainPage();
+          window.close();
+          return true;
+        }
+
+        if (isFullscreen) {
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
+          return true;
+        }
+
+        if (isBackToMain) {
+          returnToMainPage();
+          return true;
+        }
+
+        return false;
+      }
+
+      document.addEventListener("keydown", (event) => {
+        if (runKeybind(event)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+
+      window.addEventListener("message", (event) => {
+        if (
+          event.source === gameFrame.contentWindow &&
+          event.data?.type === "special-game-loader-keybind"
+        ) {
+          runKeybind(event.data);
+        }
+      });
+
+      function addHtmlKeybindBridge(html) {
+        const bridge = `<script>(function () {
+          window.addEventListener("keydown", (event) => {
+            const isForceClose = event.code === "KeyH" && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
+            const isFullscreen = event.code === "KeyF" && event.shiftKey && event.altKey;
+            const isBackToMain = event.code === "Backspace" && event.shiftKey && event.altKey;
+
+            if (isForceClose || isFullscreen || isBackToMain) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+
+              parent.postMessage({
+                type: "special-game-loader-keybind",
+                code: event.code,
+                shiftKey: event.shiftKey,
+                altKey: event.altKey,
+                ctrlKey: event.ctrlKey,
+                metaKey: event.metaKey
+              }, "*");
+            }
+          }, true);
+        })();<\/script>`;
+
+        if (/<head\b[^>]*>/i.test(html)) {
+          return html.replace(/<head\b[^>]*>/i, (head) => `${head}${bridge}`);
+        }
+
+        if (/<html\b[^>]*>/i.test(html)) {
+          return html.replace(
+            /<html\b[^>]*>/i,
+            (documentTag) => `${documentTag}<head>${bridge}</head>`
+          );
+        }
+
+        return `${bridge}${html}`;
+      }
+
+      playHtmlButton.addEventListener("click", () => htmlFilePicker.click());
+
+      htmlFilePicker.addEventListener("change", async () => {
+        const [file] = htmlFilePicker.files;
+        if (!file) return;
+
+        gameFrame.srcdoc = addHtmlKeybindBridge(await file.text());
+        gameOverlay.hidden = false;
+        htmlFilePicker.value = "";
+      });
+
+      function loadRuffle() {
+        if (window.RufflePlayer) return Promise.resolve(window.RufflePlayer);
+        if (ruffleLoading) return ruffleLoading;
+
+        ruffleLoading = new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://unpkg.com/@ruffle-rs/ruffle";
+          script.onload = () => resolve(window.RufflePlayer);
+          script.onerror = () => reject(new Error("Ruffle could not be loaded."));
+          document.head.appendChild(script);
+        });
+
+        return ruffleLoading;
+      }
+
+      playSwfButton.addEventListener("click", () => swfFilePicker.click());
+
+      swfFilePicker.addEventListener("change", async () => {
+        const [file] = swfFilePicker.files;
+        if (!file) return;
+
+        try {
+          const RufflePlayer = await loadRuffle();
+          const player = RufflePlayer.newest().createPlayer();
+          const swfData = await file.arrayBuffer();
+
+          activeRufflePlayer?.pause();
+          activeRufflePlayer?.remove();
+
+          ruffleContainer.replaceChildren(player);
+          activeRufflePlayer = player;
+          swfOverlay.hidden = false;
+
+          await player.ruffle().load({
+            data: swfData,
+            swfFileName: file.name,
+            allowScriptAccess: false
+          });
+        } catch (error) {
+          console.error(error);
+          swfOverlay.hidden = true;
+        } finally {
+          swfFilePicker.value = "";
+        }
+      });
+    </script>
+  </body>
+</html>
+```
